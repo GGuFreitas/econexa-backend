@@ -5,25 +5,22 @@ import mySqlConn from '@config/database'
 import isEmpty from '@utils/isEmpty'
 import { responseBadRequest, responseError, responseSuccess } from '@utils/response'
 
-interface ProximosQuery {
-  LATITUDE?: string
-  LONGITUDE?: string
-  RAIO?: string
-}
+import type { IListarProximosQuery } from '../types'
 
 const RAIO_MAX_KM = 50
 
-export const listarProximos = async (req: Request, res: Response): Promise<Response> => {
+export const listarProximos = async (req: Request<{}, {}, {}, IListarProximosQuery>, res: Response): Promise<Response> => {
   try {
-    const { LATITUDE, LONGITUDE, RAIO = '10' } = req.query as ProximosQuery
-
-    if (isEmpty(req.query, ['LATITUDE', 'LONGITUDE'])) {
+    const LATITUDE = req.query.LATITUDE as string
+    const LONGITUDE = req.query.LONGITUDE as string
+    const RAIO = req.query.RAIO as string
+    if (isEmpty(LATITUDE) || isEmpty(LONGITUDE)) {
       return responseBadRequest({ response: res, message: 'Latitude e longitude são obrigatórios' })
     }
 
-    const lat = parseFloat(LATITUDE as string)
-    const lng = parseFloat(LONGITUDE as string)
-    const raio = Math.min(parseFloat(RAIO as string), RAIO_MAX_KM)
+    const lat = parseFloat(LATITUDE)
+    const lng = parseFloat(LONGITUDE)
+    const raio = Math.min(parseFloat(RAIO || '10'), RAIO_MAX_KM)
 
     if (Number.isNaN(lat) || Number.isNaN(lng)) {
       return responseBadRequest({ response: res, message: 'Coordenadas inválidas' })

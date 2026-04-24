@@ -2,39 +2,33 @@ import { Request, Response } from 'express'
 import type { RowDataPacket } from 'mysql2'
 
 import mySqlConn from '@config/database'
-import isEmpty from '@utils/isEmpty'
+import isArrayAndNotEmpty from '@utils/isArrayAndNotEmpty'
 import { responseError, responseSuccess } from '@utils/response'
 
-interface FiltrosQuery {
-  STATUS?: string
-  CATEGORIA?: string
-}
+import type { IFiltrosQuery } from '../types'
+import { formatSqlInValues } from '@utils/formatSqlInValues'
 
-const STATUS_PERMITIDOS = ['pendente', 'em_tratamento', 'resolvido']
-const CATEGORIAS_VALIDAS = ['rua', 'escola', 'saude', 'transporte', 'meio_ambiente', 'outro']
-
-export const listarRegistros = async (req: Request, res: Response): Promise<Response> => {
+export const listarRegistros = async (req: Request<{}, {}, {}, IFiltrosQuery>, res: Response): Promise<Response> => {
   try {
-    const { STATUS, CATEGORIA } = req.query as FiltrosQuery
+    const { STATUS, CATEGORIA } = req.query
 
-    let query = `-- sql
-      SELECT * FROM PROBLEMAS WHERE STATUS != 'arquivado'
-    `
-    const params: string[] = []
+    const querySql = []
 
-    if (!isEmpty(STATUS as any) && STATUS_PERMITIDOS.includes(STATUS)) {
-      query += ' AND STATUS = ?'
-      params.push(STATUS)
+    if (isArrayAndNotEmpty(STATUS)) {
+      querySql.push(`STATUS IN (${formatSqlInValues(STATUS)})`)
     }
 
-    if (!isEmpty(CATEGORIA as any) && CATEGORIAS_VALIDAS.includes(CATEGORIA)) {
-      query += ' AND CATEGORIA = ?'
-      params.push(CATEGORIA)
+    if (isArrayAndNotEmpty(CATEGORIA)) {
+      querySql.push(`CATEGORIA IN (${formatSqlInValues(CATEGORIA)})`)
     }
 
-    query += ' ORDER BY CRIADO_EM DESC'
+    const querySqlString = querySql.length > 0 ? `WHERE ${querySql.join(' AND ')} AND STATUS != 'arquivado'` : `WHERE STATUS != 'arquivado'`
 
-    const [problemas] = await mySqlConn.query<RowDataPacket[]>(query, params)
+    const [problemas] = await mySqlConn.query<RowDataPacket[]>(`-- sql
+      SELECT * FROM PROBLEMAS
+      ${querySqlString}
+      ORDER BY CRIADO_EM DESC
+    `)
 
     return responseSuccess({ response: res, payload: { problemas } })
   } catch (err) {

@@ -3,6 +3,7 @@ import type { RowDataPacket } from 'mysql2'
 
 import mySqlConn from '@config/database'
 import { responseBadRequest, responseError, responseSuccess } from '@utils/response'
+import isEmpty from '@utils/isEmpty'
 
 export const removerApoio = async (req: Request, res: Response): Promise<Response> => {
   try {

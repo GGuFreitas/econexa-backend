@@ -11,7 +11,7 @@ export interface IProblema {
   STATUS: 'pendente' | 'em_tratamento' | 'resolvido' | 'arquivado'
   CRIADO_EM: Date
   ATUALIZADO_EM: Date
-  
+
   // Contadores pré-calculados
   CONT_APOIOS: number
   CONT_VISUALIZACOES: number
@@ -26,6 +26,17 @@ export interface ICriarProblema {
   LATITUDE: number
   LONGITUDE: number
   IMAGEM?: string
+}
+
+export interface IFiltrosQuery {
+  STATUS?: string[]
+  CATEGORIA?: string[]
+}
+
+export interface IListarProximosQuery {
+  LATITUDE?: string
+  LONGITUDE?: string
+  RAIO?: string
 }
 
 export const CATEGORIAS = [

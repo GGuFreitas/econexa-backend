@@ -2,9 +2,9 @@ import { Request, Response } from 'express'
 import type { RowDataPacket } from 'mysql2'
 
 import mySqlConn from '@config/database'
-import isEmpty from '@utils/isEmpty'
-import { responseBadRequest, responseError, responseSuccess } from '@utils/response'
 import { getIO } from '@socket/index'
+import { responseBadRequest, responseError, responseSuccess } from '@utils/response'
+import isEmpty from '@utils/isEmpty'
 
 export const apoiarProblema = async (req: Request, res: Response): Promise<Response> => {
   try {
@@ -19,7 +19,7 @@ export const apoiarProblema = async (req: Request, res: Response): Promise<Respo
       `-- sql
         SELECT ALLOW_APOIAR_PROBLEMA FROM USER_PERMISSOES WHERE USER_ID = ?
       `,
-      [usuarioId],
+      [usuarioId]
     )
 
     if (!permissoes.length || !permissoes[0].ALLOW_APOIAR_PROBLEMA) {
@@ -30,7 +30,7 @@ export const apoiarProblema = async (req: Request, res: Response): Promise<Respo
       `-- sql
         SELECT ID FROM APOIADORES WHERE PROBLEMA_ID = ? AND USER_ID = ?
       `,
-      [id, usuarioId],
+      [id, usuarioId]
     )
 
     if (jaApoiou.length) {
@@ -41,21 +41,21 @@ export const apoiarProblema = async (req: Request, res: Response): Promise<Respo
       `-- sql
         INSERT INTO APOIADORES (PROBLEMA_ID, USER_ID) VALUES (?, ?)
       `,
-      [id, usuarioId],
+      [id, usuarioId]
     )
 
     await mySqlConn.query(
       `-- sql
         UPDATE PROBLEMAS SET CONT_APOIOS = CONT_APOIOS + 1 WHERE ID = ?
       `,
-      [id],
+      [id]
     )
 
     await mySqlConn.query(
       `-- sql
         UPDATE USERS SET CONT_APOIOS_DADOS = CONT_APOIOS_DADOS + 1 WHERE ID = ?
       `,
-      [usuarioId],
+      [usuarioId]
     )
 
     const io = getIO()

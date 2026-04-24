@@ -2,8 +2,8 @@ import { Request, Response } from 'express'
 import type { RowDataPacket } from 'mysql2'
 
 import mySqlConn from '@config/database'
-import isEmpty from '@utils/isEmpty'
 import { responseBadRequest, responseError, responseSuccess } from '@utils/response'
+import isEmpty from '@utils/isEmpty'
 
 export const deletarRegistro = async (req: Request, res: Response): Promise<Response> => {
   try {

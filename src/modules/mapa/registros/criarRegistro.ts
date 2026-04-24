@@ -2,10 +2,10 @@ import { Request, Response } from 'express'
 import type { ResultSetHeader, RowDataPacket } from 'mysql2'
 
 import mySqlConn from '@config/database'
-import isEmpty from '@utils/isEmpty'
-import { responseBadRequest, responseError, responseSuccess } from '@utils/response'
 import { getIO } from '@socket/index'
+import { responseBadRequest, responseError, responseSuccess } from '@utils/response'
 
+import isEmpty from '@utils/isEmpty'
 import type { ICriarProblema } from '../types'
 
 const CATEGORIAS_VALIDAS = ['rua', 'escola', 'saude', 'transporte', 'meio_ambiente', 'outro']
@@ -35,7 +35,7 @@ export const criarRegistro = async (req: Request, res: Response): Promise<Respon
       `-- sql
         SELECT ALLOW_CRIAR_PROBLEMA FROM USER_PERMISSOES WHERE USER_ID = ?
       `,
-      [usuarioId],
+      [usuarioId]
     )
 
     if (!permissoes.length || !permissoes[0].ALLOW_CRIAR_PROBLEMA) {
@@ -48,14 +48,14 @@ export const criarRegistro = async (req: Request, res: Response): Promise<Respon
         (TITULO, DESCRICAO, CATEGORIA, ENDERECO, LATITUDE, LONGITUDE, IMAGEM, USUARIO_ID, STATUS, CONT_APOIOS, CONT_VISUALIZACOES, CONT_COMENTARIOS)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pendente', 0, 0, 0)
       `,
-      [TITULO, DESCRICAO, CATEGORIA, ENDERECO ?? null, LATITUDE, LONGITUDE, IMAGEM ?? null, usuarioId],
+      [TITULO, DESCRICAO, CATEGORIA, ENDERECO ?? null, LATITUDE, LONGITUDE, IMAGEM ?? null, usuarioId]
     )
 
     await mySqlConn.query(
       `-- sql
         UPDATE USERS SET CONT_PROBLEMAS_CRIADOS = CONT_PROBLEMAS_CRIADOS + 1 WHERE ID = ?
       `,
-      [usuarioId],
+      [usuarioId]
     )
 
     const io = getIO()

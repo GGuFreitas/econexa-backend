@@ -1,24 +1,27 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
+    "target": "ES2022",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
     "module": "commonjs",
     "rootDir": "./src",
-    "outDir": "./dist",
-    "baseUrl": ".",
-    "ignoreDeprecations": "6.0",
+    "baseUrl": "./src",
     "paths": {
-      "@config/*": ["src/config/*"],
-      "@modules/*": ["src/modules/*"],
-      "@middleware/*": ["src/middleware/*"],
-      "@utils/*": ["src/utils/*"],
-      "@socket/*": ["src/socket/*"]
+      "@config/*": ["config/*"],
+      "@modules/*": ["modules/*"],
+      "@middleware/*": ["middleware/*"],
+      "@utils/*": ["utils/*"],
+      "@socket/*": ["socket/*"]
     },
+    "typeRoots": ["./src/@types", "./node_modules/@types"],
+    "outDir": "./dist",
+    "removeComments": true,
     "esModuleInterop": true,
-    "strict": false,
-    "strictNullChecks": false,
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
     "skipLibCheck": true,
-    "noImplicitAny": false,
-    "typeRoots": ["./node_modules/@types"]
+    "sourceMap": true,
+    "inlineSources": true
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]
