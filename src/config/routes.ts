@@ -1,24 +1,32 @@
 import { readdirSync, statSync } from 'fs'
-import { join } from 'path'
+import { join, sep } from 'path'
 
-const routes: any[] = []
+interface RouteEntry {
+  path: string
+  file: string
+}
 
-const getAllRoutes = (dirPath = join(__dirname, '../routes')): any[] => {
+const collectRoutes = (dirPath: string, rootPath: string): RouteEntry[] => {
+  const entries: RouteEntry[] = []
   const files = readdirSync(dirPath)
 
-  files.forEach((file) => {
+  for (const file of files) {
     const fullPath = join(dirPath, file)
 
     if (statSync(fullPath).isDirectory()) {
-      return getAllRoutes(fullPath)
+      entries.push(...collectRoutes(fullPath, rootPath))
+    } else {
+      const relative = dirPath.replace(rootPath, '').split(sep).join('/')
+      entries.push({ path: relative || '/', file: fullPath })
     }
-    routes.push({
-      path: '/' + dirPath.split('routes')[1],
-      file: fullPath
-    })
-  })
+  }
 
-  return routes
+  return entries
+}
+
+const getAllRoutes = (): RouteEntry[] => {
+  const routesRoot = join(__dirname, '../routes')
+  return collectRoutes(routesRoot, routesRoot)
 }
 
 export default getAllRoutes

@@ -1,5 +1,6 @@
 import express from 'express'
 import cors from 'cors'
+import { join } from 'path'
 import getAllRoutes from '@config/routes'
 
 const app = express()
@@ -7,12 +8,14 @@ const app = express()
 app.use(cors())
 app.use(express.json())
 
-const routes = getAllRoutes()
+const registerRoutes = async (): Promise<void> => {
+  const routes = getAllRoutes()
 
-routes.forEach((route) => {
-  import(route.file).then((module) => {
-    app.use(`/api${route.path}`, module.default)
-  })
-})
+  for (const route of routes) {
+    const mod = await import(join(route.file))
+    app.use(`/api${route.path}`, mod.default)
+  }
+}
 
+export { registerRoutes }
 export default app

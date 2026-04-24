@@ -224,181 +224,13 @@ CREATE INDEX idx_apoiadores_problema ON APOIADORES(PROBLEMA_ID);
 - logging e métricas
 - Rate limiting
 
----
-
-## 3. RECOMENDAÇÕES DE DESIGN SYSTEM
-
-### 3.1 Paleta de Cores
-
-**Cores atuais:** Precisa evolução para o conceito "tecnologia + comunidade + sustentabilidade"
-
-```javascript
-// theme/index.jsx - cores recomendadas
-
-const colors = {
-  // Verde ambiental (primária)
-  primary: {
-    main: '#2E7D32',      // Verde floresta
-    light: '#60AD5E',
-    dark: '#005005',
-    contrast: '#FFFFFF'
-  },
-  
-  // AmareloBrasil (secundária - atenção)
-  secondary: {
-    main: '#F9A825',     // Amarelo alerta
-    light: '#FFD54F',
-    dark: '#C17900',
-    contrast: '#000000'
-  },
-  
-  // Azul água (terciária - confiança)
-  info: {
-    main: '#0277BD',     // Azul oceano
-    light: '#58A5F0',
-    dark: '#004C8C',
-    contrast: '#FFFFFF'
-  },
-  
-  // Neutros
-  grey: {
-    50: '#FAFAFA',
-    100: '#F5F5F5',
-    200: '#EEEEEE',
-    300: '#E0E0E0',
-    500: '#9E9E9E',
-    700: '#616161',
-    900: '#212121'
-  },
-  
-  // Estados
-  success: '#43A047',
-  warning: '#FFA000',
-  error: '#E53935',
-  info: '#1E88E5'
-};
-```
-
-### 3.2 Design Tokens
-
-```javascript
-// theme/tokens.js
-export const tokens = {
-  // Espaçamento (8px grid)
-  spacing: {
-    xs: 4,
-    sm: 8,
-    md: 16,
-    lg: 24,
-    xl: 32,
-    xxl: 48
-  },
-  
-  // Border radius
-  borderRadius: {
-    sm: 4,
-    md: 8,
-    lg: 16,
-    full: 9999
-  },
-  
-  // Sombras
-  shadows: {
-    sm: '0 1px 2px rgba(0,0,0,0.1)',
-    md: '0 4px 6px rgba(0,0,0,0.1)',
-    lg: '0 10px 20px rgba(0,0,0,0.15)'
-  },
-  
-  // Transições
-  transitions: {
-    fast: '150ms ease',
-    normal: '250ms ease',
-    slow: '400ms ease'
-  }
-};
-```
-
-### 3.3 Componentes Reutilizáveis
-
-**Estruture assim:**
-
-```
-src/
-├── common/
-│   ├── components/
-│   │   ├── Button/
-│   │   │   ├── Button.jsx
-│   │   │   └── Button.styles.js
-│   │   ├── Input/
-│   │   │   ├── Input.jsx
-│   │   │   └── Input.styles.js
-│   │   ├── Card/
-│   │   │   ├── Card.jsx
-│   │   │   └── Card.styles.js
-│   │   ├── CardPost/
-│   │   │   ├── CardPost.jsx
-│   │   │   └── ...
-│   │   ├── MarkerMap/
-│   │   │   ├── MarkerMap.jsx
-│   │   │   └── ...
-│   │   └── Avatar/
-│   │       ├── Avatar.jsx
-│   │       └── ...
-│   │
-│   └── index.js        # Exporta todos
-│
-├── theme/
-│   ├── index.jsx       # ThemeProvider
-│   ├── palette.js      # Cores
-│   ├── typography.js  # Fontes
-│   └── components.js  # Componentes MUI
-```
-
-**Exemplo Button com variantes:**
-```javascript
-// common/components/Button/Button.jsx
-import { Button as MuiButton } from '@mui/material';
-import { LoadingSpinner } from '../LoadingSpinner';
-
-export const Button = ({ 
-  variant = 'primary',  // primary, secondary, outline, ghost
-  size = 'medium',    // small, medium, large
-  loading = false,
-  children,
-  ...props 
-}) => {
-  constvariantConfig = {
-    primary: { 
-      variant: 'contained', 
-      color: 'primary' 
-    },
-    secondary: { 
-      variant: 'contained', 
-      color: 'secondary' 
-    },
-    outline: { 
-      variant: 'outlined', 
-      color: 'primary' 
-    },
-    ghost: { 
-      variant: 'text', 
-      color: 'primary' 
-    }
-  };
-  
-  return (
-    <MuiButton {...variantConfig[variant]} disabled={loading} {...props}>
-      {loading ? <LoadingSpinner /> : children}
-    </MuiButton>
-  );
-};
-```
+> **Nota:** Documentação de Design System, Paleta de Cores e Arquitetura Frontend estão em arquivos dedicados: `DESIGN_SYSTEM.md` e `ARQUITETURA_FRONTEND.md`
 
 ---
 
-## 4. ESTRUTURA PARA MÓDULOS FUTUROS
+## 3. ESTRUTURA PARA MÓDULOS FUTUROS
 
-### 4.1 Módulo Mapa (Principal Feature)
+### 3.1 Módulo Mapa (Principal Feature)
 
 ```javascript
 // src/modules/mapa/types.ts
@@ -471,7 +303,7 @@ export const listarProximos = async (lat, lng, raioKm = 10) => {
 };
 ```
 
-### 4.2 Módulo Posts (Feed Social)
+### 3.2 Módulo Posts (Feed Social)
 
 ```javascript
 // src/modules/posts/types.ts
@@ -511,7 +343,7 @@ export const curtirPost = async (postId, userId) => {
 };
 ```
 
-### 4.3 Módulo de Notificações
+### 3.3 Módulo de Notificações
 
 ```javascript
 // src/modules/notificacoes/service.js
@@ -549,9 +381,9 @@ export const TIPOS_NOTIFICACAO = {
 
 ---
 
-## 5. MELHORIAS RECOMENDADAS
+## 4. MELHORIAS RECOMENDADAS
 
-### 5.1 Backend
+### 4.1 Backend
 
 #### A) Validação de Entrada (Formik + Yup)
 
@@ -655,7 +487,7 @@ export const rateLimit = (maxRequests = 100, windowSeconds = 60) => {
 };
 ```
 
-### 5.2 Frontend
+### 4.2 Frontend
 
 #### A) Hooks de Autenticação Melhorados
 
@@ -858,9 +690,9 @@ export const PrivateRoutes = {
 
 ---
 
-## 6. BANCO DE DADOS - ESTRUTURA RECOMENDADA
+## 5. BANCO DE DADOS - ESTRUTURA RECOMENDADA
 
-### 6.1 Schema Otimizado
+### 5.1 Schema Otimizado
 
 ```sql
 -- USERS com contadores
@@ -979,7 +811,7 @@ CREATE TABLE COMENTARIOS (
 
 ---
 
-## 7. IMPLEMENTAÇÃO PASSO A PASSO
+## 6. IMPLEMENTAÇÃO PASSO A PASSO
 
 ### Fase 1: Fundações (semanas 1-2)
 - [ ] Implementar schema de banco otimizado
@@ -1015,7 +847,7 @@ CREATE TABLE COMENTARIOS (
 
 ---
 
-## 8. RESUMO DAS RECOMENDAÇÕES CHAVE
+## 7. RESUMO DAS RECOMENDAÇÕES CHAVE
 
 | Área | Problema Atual | Solução Recomendada |
 |-----|---------------|-------------------|

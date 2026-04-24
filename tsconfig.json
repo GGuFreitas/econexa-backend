@@ -5,6 +5,7 @@
     "rootDir": "./src",
     "outDir": "./dist",
     "baseUrl": ".",
+    "ignoreDeprecations": "6.0",
     "paths": {
       "@config/*": ["src/config/*"],
       "@modules/*": ["src/modules/*"],

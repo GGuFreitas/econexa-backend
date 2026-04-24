@@ -1,21 +1,26 @@
 import { Request, Response } from 'express'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
-import db from '@config/database'
+import type { RowDataPacket } from 'mysql2'
+
+import mySqlConn from '@config/database'
+import isEmpty from '@utils/isEmpty'
 import { responseBadRequest, responseError, responseSuccess, responseUnauthorized } from '@utils/response'
 import { getIO } from '@socket/index'
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from '@utils/jwt'
 
 export const login = async (req: Request, res: Response) => {
   try {
-    const { EMAIL, SENHA } = req.body
-
-    if (!EMAIL || !SENHA) {
+    if (isEmpty(req.body, ['EMAIL', 'SENHA'])) {
       return responseBadRequest({ response: res, message: 'Email e senha são obrigatórios' })
     }
 
-    const [users]: any = await db.query(
-      `SELECT * FROM USERS WHERE EMAIL = ? AND STATUS = 'ATIVO'`,
+    const { EMAIL, SENHA } = req.body
+
+    const [users] = await mySqlConn.query<RowDataPacket[]>(
+      `-- sql
+        SELECT * FROM USERS WHERE EMAIL = ? AND STATUS = 'ATIVO'
+      `,
       [EMAIL]
     )
 
@@ -31,8 +36,10 @@ export const login = async (req: Request, res: Response) => {
       return responseBadRequest({ response: res, message: 'Senha inválida' })
     }
 
-    const [permissoes]: any = await db.query(
-      `SELECT * FROM USER_PERMISSOES WHERE USER_ID = ?`,
+    const [permissoes]: any = await mySqlConn.query<RowDataPacket[]>(
+      `-- sql
+        SELECT * FROM USER_PERMISSOES WHERE USER_ID = ?
+      `,
       [user.ID]
     )
 
@@ -49,8 +56,10 @@ export const login = async (req: Request, res: Response) => {
     const refreshToken = generateRefreshToken(payload)
 
     // Armazena refresh token no banco
-    await db.query(
-      `INSERT INTO REFRESH_TOKENS (USER_ID, TOKEN, EXPIRA_EM) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 7 DAY))`,
+    await mySqlConn.query(
+      `-- sql
+        INSERT INTO REFRESH_TOKENS (USER_ID, TOKEN, EXPIRA_EM) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 7 DAY))
+      `,
       [user.ID, refreshToken]
     )
 
@@ -76,8 +85,10 @@ export const refreshToken = async (req: Request, res: Response) => {
     }
 
     // Verifica se o token existe e é válido
-    const [tokens]: any = await db.query(
-      `SELECT * FROM REFRESH_TOKENS WHERE TOKEN = ? AND EXPIRA_EM > NOW()`,
+    const [tokens]: any = await mySqlConn.query(
+      `-- sql
+        SELECT * FROM REFRESH_TOKENS WHERE TOKEN = ? AND EXPIRA_EM > NOW()
+      `,
       [token]
     )
 
@@ -93,8 +104,10 @@ export const refreshToken = async (req: Request, res: Response) => {
     }
 
     // Busca permissões atualizadas
-    const [permissoes]: any = await db.query(
-      `SELECT * FROM USER_PERMISSOES WHERE USER_ID = ?`,
+    const [permissoes]: any = await mySqlConn.query(
+      `-- sql
+        SELECT * FROM USER_PERMISSOES WHERE USER_ID = ?
+      `,
       [payload.usuario.ID]
     )
 
@@ -108,9 +121,16 @@ export const refreshToken = async (req: Request, res: Response) => {
     const newRefreshToken = generateRefreshToken(newPayload)
 
     // Remove token antigo e insere novo
-    await db.query(`DELETE FROM REFRESH_TOKENS WHERE TOKEN = ?`, [token])
-    await db.query(
-      `INSERT INTO REFRESH_TOKENS (USER_ID, TOKEN, EXPIRA_EM) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 7 DAY))`,
+    await mySqlConn.query(
+      `-- sql
+        DELETE FROM REFRESH_TOKENS WHERE TOKEN = ?
+      `,
+      [token]
+    )
+    await mySqlConn.query(
+      `-- sql
+        INSERT INTO REFRESH_TOKENS (USER_ID, TOKEN, EXPIRA_EM) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 7 DAY))
+      `,
       [payload.usuario.ID, newRefreshToken]
     )
 
@@ -126,13 +146,21 @@ export const logout = async (req: Request, res: Response) => {
     const userId = req.conta?.usuario?.ID
 
     if (token) {
-      // Remove refresh token específico
-      await db.query(`DELETE FROM REFRESH_TOKENS WHERE TOKEN = ?`, [token])
+      await mySqlConn.query(
+        `-- sql
+          DELETE FROM REFRESH_TOKENS WHERE TOKEN = ?
+        `,
+        [token]
+      )
     }
 
     if (userId) {
-      // Remove todos os refresh tokens do usuário
-      await db.query(`DELETE FROM REFRESH_TOKENS WHERE USER_ID = ?`, [userId])
+      await mySqlConn.query(
+        `-- sql
+          DELETE FROM REFRESH_TOKENS WHERE USER_ID = ?
+        `,
+        [userId]
+      )
     }
 
     return responseSuccess({ response: res, payload: { message: 'Logout realizado' } })
