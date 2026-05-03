@@ -15,19 +15,27 @@ export const listarRegistros = async (req: Request<{}, {}, {}, IFiltrosQuery>, r
     const querySql = []
 
     if (isArrayAndNotEmpty(STATUS)) {
-      querySql.push(`STATUS IN (${formatSqlInValues(STATUS)})`)
+      querySql.push(`p.STATUS IN (${formatSqlInValues(STATUS)})`)
     }
 
     if (isArrayAndNotEmpty(CATEGORIA)) {
-      querySql.push(`CATEGORIA IN (${formatSqlInValues(CATEGORIA)})`)
+      querySql.push(`p.CATEGORIA IN (${formatSqlInValues(CATEGORIA)})`)
     }
 
-    const querySqlString = querySql.length > 0 ? `WHERE ${querySql.join(' AND ')} AND STATUS != 'arquivado'` : `WHERE STATUS != 'arquivado'`
+    const querySqlString = querySql.length > 0 ? `WHERE ${querySql.join(' AND ')} AND p.STATUS != 'arquivado'` : `WHERE p.STATUS != 'arquivado'`
 
     const [problemas] = await mySqlConn.query<RowDataPacket[]>(`-- sql
-      SELECT * FROM PROBLEMAS
+      SELECT 
+        p.*,
+        u.NOME as USUARIO_NOME,
+        u.FOTO as USUARIO_FOTO,
+        GROUP_CONCAT(pi.URL ORDER BY pi.ORDEM) as IMAGENS
+      FROM PROBLEMAS p
+      LEFT JOIN USERS u ON p.USUARIO_ID = u.ID
+      LEFT JOIN PROBLEMA_IMAGENS pi ON p.ID = pi.PROBLEMA_ID
       ${querySqlString}
-      ORDER BY CRIADO_EM DESC
+      GROUP BY p.ID
+      ORDER BY p.CRIADO_EM DESC
     `)
 
     return responseSuccess({ response: res, payload: { problemas } })

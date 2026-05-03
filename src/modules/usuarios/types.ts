@@ -4,6 +4,12 @@ export interface IRegister {
   SENHA: string
 }
 
+export interface IAtualizarUsuario {
+  NOME?: string
+  FOTO?: string
+  BIO?: string
+}
+
 export interface IUsuario {
   ID: number
   NOME: string

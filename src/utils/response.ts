@@ -11,3 +11,6 @@ export const responseError = ({ response, error }: any) => {
 
 export const responseUnauthorized = ({ response, message }: any) =>
   response.status(401).json({ message })
+
+export const responseNotFound = ({ response, message }: any) =>
+  response.status(404).json({ message })

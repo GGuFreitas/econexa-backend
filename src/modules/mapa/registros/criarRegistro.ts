@@ -12,15 +12,15 @@ const CATEGORIAS_VALIDAS = ['rua', 'escola', 'saude', 'transporte', 'meio_ambien
 
 export const criarRegistro = async (req: Request, res: Response): Promise<Response> => {
   try {
-    const { TITULO, DESCRICAO, CATEGORIA, ENDERECO, LATITUDE, LONGITUDE, IMAGEM } = req.body as ICriarProblema
+    const { TITULO, DESCRICAO, CATEGORIA, ENDERECO, LATITUDE, LONGITUDE, IMAGEM, IMAGENS } = req.body as ICriarProblema
     const usuarioId = req.conta.usuario.ID
 
     if (isEmpty(req.body, ['TITULO', 'DESCRICAO', 'CATEGORIA'])) {
       return responseBadRequest({ response: res, message: 'Dados incompletos' })
     }
 
-    if (LATITUDE == null || LONGITUDE == null) {
-      return responseBadRequest({ response: res, message: 'Coordenadas são obrigatórias' })
+    if (isEmpty(LATITUDE) || isEmpty(LONGITUDE)) {
+      return responseBadRequest({ response: res, message: 'Latitude e longitude são obrigatórios' })
     }
 
     if (!CATEGORIAS_VALIDAS.includes(CATEGORIA)) {
@@ -51,9 +51,20 @@ export const criarRegistro = async (req: Request, res: Response): Promise<Respon
       [TITULO, DESCRICAO, CATEGORIA, ENDERECO ?? null, LATITUDE, LONGITUDE, IMAGEM ?? null, usuarioId]
     )
 
+    const problemaId = result.insertId
+
+    if (IMAGENS && IMAGENS.length > 0) {
+      for (let i = 0; i < IMAGENS.length; i++) {
+        await mySqlConn.query(
+          `INSERT INTO PROBLEMA_IMAGENS (PROBLEMA_ID, URL, ORDEM, TIPO) VALUES (?, ?, ?, 'IMAGEM')`,
+          [problemaId, IMAGENS[i], i]
+        )
+      }
+    }
+
     await mySqlConn.query(
       `-- sql
-        UPDATE USERS SET CONT_PROBLEMAS_CRIADOS = CONT_PROBLEMAS_CRIADOS + 1 WHERE ID = ?
+        UPDATE USERS SET CONT_PROBLEMAS = CONT_PROBLEMAS + 1 WHERE ID = ?
       `,
       [usuarioId]
     )

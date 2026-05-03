@@ -8,9 +8,12 @@ export interface IProblema {
   LONGITUDE: number
   IMAGEM?: string
   USUARIO_ID: number
+  USUARIO_NOME?: string
+  USUARIO_FOTO?: string
   STATUS: 'pendente' | 'em_tratamento' | 'resolvido' | 'arquivado'
   CRIADO_EM: Date
   ATUALIZADO_EM: Date
+  IMAGENS?: string[]
 
   // Contadores pré-calculados
   CONT_APOIOS: number
@@ -26,6 +29,7 @@ export interface ICriarProblema {
   LATITUDE: number
   LONGITUDE: number
   IMAGEM?: string
+  IMAGENS?: string[]
 }
 
 export interface IFiltrosQuery {

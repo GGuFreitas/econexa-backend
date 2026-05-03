@@ -641,7 +641,10 @@ Usada para:
 * geolocalização otimizada (GeoHash)
 * sistema de tags (multi-causa)
 * cache (Redis)
-
+* Area de artigos para postar artigos cientificos e facilitar divulgação
+* area para voltada a estudos separada por areas de conhecimento social e ambiental, foco em entender a estrutura da sociedade
+formar pensamento critico, entendimento de politicas publicas, planejamento urbano, racismo ambiental, entender problema de privatizaçãoo
+* migrar para outro banco que nao seja local, supabase por enquanto algo do tipo
 ---
 
 ## 📌 RESUMO FINAL

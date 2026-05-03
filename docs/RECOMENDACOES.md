@@ -84,10 +84,10 @@ src/
 **Cada módulo deve seguir:**
 ```
 modulo/
-├── types.ts              # Interfaces TypeScript
-├── service.js           # Funções de negócio
-├── validator.js         # Validações (Yup)
-└── routes.js            # Rotas express
+├── /interface/types.ts              # Interfaces TypeScript
+├── insert.ts
+├── creat.ts 
+└── delete.ts
 ```
 
 ---
@@ -385,43 +385,6 @@ export const TIPOS_NOTIFICACAO = {
 
 ### 4.1 Backend
 
-#### A) Validação de Entrada (Formik + Yup)
-
-```javascript
-// src/modules/usuarios/validator.js
-import * as Yup from 'yup';
-
-export const loginSchema = Yup.object().shape({
-  EMAIL: Yup.string()
-    .email('Email inválido')
-    .required('Email é obrigatório'),
-  SENHA: Yup.string()
-    .min(6, 'Senha deve ter pelo menos 6 caracteres')
-    .required('Senha é obrigatória')
-});
-
-export const problemaSchema = Yup.object().shape({
-  TITULO: Yup.string()
-    .min(5, 'Título muito curto')
-    .max(100, 'Título muito longo')
-    .required('Título é obrigatório'),
-  DESCRICAO: Yup.string()
-    .min(20, 'Descrição muito curta')
-    .required('Descrição é obrigatória'),
-  CATEGORIA: Yup.string()
-    .oneOf(['rua', 'escola', 'saude', 'transporte', 'meio_ambiente', 'outro'])
-    .required('Categoria é obrigatória'),
-  LATITUDE: Yup.number()
-    .min(-90)
-    .max(90)
-    .required('Latitude é obrigatória'),
-  LONGITUDE: Yup.number()
-    .min(-180)
-    .max(180)
-    .required('Longitude é obrigatória')
-});
-```
-
 #### B) Tratamento de Erros Global
 
 ```javascript
@@ -486,208 +449,62 @@ export const rateLimit = (maxRequests = 100, windowSeconds = 60) => {
   };
 };
 ```
-
-### 4.2 Frontend
-
-#### A) Hooks de Autenticação Melhorados
-
+### C)
+  criar função de permissao que verifica a permissao do usuario e chamar a permissao na pasta de routes
+  parecido com isso 
 ```javascript
-// auth/hooks/useAuth.js
-import { useSelector, useDispatch } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
-import { useEffect, useState } from 'react';
-import { api } from '@/services/api';
-import { setLoggedIn, setToken, logout as logoutAction } from '@/store/authSlice';
-import jwt from 'jwt-decode';
 
-export const useAuth = () => {
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
-  const { token, isLoggedIn } = useSelector(state => state.auth);
-  const [user, setUser] = useState(null);
-  
-  useEffect(() => {
-    if (token) {
-      try {
-        const decoded = jwt(token);
-        
-        // Verifica expiração
-        if (decoded.exp * 1000 < Date.now()) {
-          dispatch(logoutAction());
-          navigate('/login');
-          return;
-        }
-        
-        setUser(decoded.usuario);
-      } catch {
-        dispatch(logoutAction());
-      }
-    }
-  }, [token]);
-  
-  const login = async (email, senha) => {
-    const { data } = await api.post('/usuarios/login', { email, senha });
-    dispatch(setToken(data.token));
-    return data;
-  };
-  
-  const logout = () => {
-    dispatch(logoutAction());
-    navigate('/login');
-  };
-  
-  return { user, token, isLoggedIn, login, logout };
-};
+  import { NextFunction, Request, Response } from 'express'
+
+import { responseUnauthorized, responseError } from '@utils/response'
+
+const permissao = (nomePermissao: string) => async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    if (req.conta.permissoes[nomePermissao] === 1) return next()
+
+    return responseUnauthorized({ response: res, message: 'Usuário não tem permissão para acessar este recurso.' })
+  } catch (err) {
+    return responseError({ response: res, error: err })
+  }
+}
 ```
 
-#### B) Componente de Mapa Base
-
+exemplo somente, nao vao existir essas rotas peguei de um codigo exemplo
 ```javascript
-// common/components/Mapa/Mapa.jsx
-import { useEffect, useRef, useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
-import L from 'leaflet';
-import { Box } from '@mui/material';
+import { Router, type RequestHandler } from 'express'
 
-// Ícones customizados
-const createIcon = (categoria) => {
-  const cores = {
-    rua: '#E53935',
-    escola: '#FB8C00',
-    saude: '#1E88E5',
-    transporte: '#8E24AA',
-    meio_ambiente: '#43A047',
-    outro: '#757575'
-  };
-  
-  return L.divIcon({
-    className: 'custom-marker',
-    html: `<div style="
-      background: ${cores[categoria] || cores.outro};
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      border: 3px solid white;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-    "></div>`,
-    iconSize: [24, 24],
-    iconAnchor: [12, 12]
-  });
-};
+import auth from '@middleware/auth'
+import permissao from '@middleware/permissao'
+import atualizarStatus from '@modules/recursosHumanos/vagas/atualizarStatus'
+import atualizarStatusTI from '@modules/recursosHumanos/vagas/atualizarStatusTI'
+import { atualizarVaga } from '@modules/recursosHumanos/vagas/atualizarVaga'
+import { cadastrarVaga } from '@modules/recursosHumanos/vagas/cadastrarVaga'
+import listarFiltros from '@modules/recursosHumanos/vagas/listarFiltros'
+import { listarUsers } from '@modules/recursosHumanos/vagas/listarUsers'
+import listarVagaCompleta from '@modules/recursosHumanos/vagas/listarVagaCompleta'
+import listarVagas from '@modules/recursosHumanos/vagas/listarVagas'
+import { ICadastrarVaga, IAtualizarVaga, IListarVagaCompleta, IListarVagas, IAtualizarStatusTI, IAtualizarStatus } from '@modules/recursosHumanos/vagas/types'
 
-// Componente para centralizar map
-const MapCenter = ({ center }) => {
-  const map = useMap();
-  
-  useEffect(() => {
-    if (center) {
-      map.setView([center.lat, center.lng], map.getZoom());
-    }
-  }, [center]);
-  
-  return null;
-};
+const router = Router()
 
-export const Mapa = ({ 
-  problemas = [], 
-  on MarkerClick,
-  center = { lat: -23.55, lng: -46.63 },
-  zoom = 13 
-}) => {
-  const [selected, setSelected] = useState(null);
-  
-  return (
-    <Box sx={{ height: '100%', width: '100%' }}>
-      <MapContainer 
-        center={[center.lat, center.lng]} 
-        zoom={zoom} 
-        style={{ height: '100%', width: '100%' }}
-      >
-        <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution='&copy; OpenStreetMap'
-        />
-        
-        <MapCenter center={center} />
-        
-        {problemas.map(problema => (
-          <Marker
-            key={problema.id}
-            position={[problema.latitude, problema.longitude]}
-            icon={createIcon(problema.categoria)}
-            eventHandlers={{
-              click: () => {
-                setSelected(problema);
-                onMarkerClick?.(problema);
-              }
-            }}
-          >
-            <Popup>
-              <Box sx={{ minWidth: 200 }}>
-                <h4>{problema.titulo}</h4>
-                <p>{problema.descricao}</p>
-                <small>
-                  {problema.cont_apoios} aprovações
-                </small>
-              </Box>
-            </Popup>
-          </Marker>
-        ))}
-      </MapContainer>
-    </Box>
-  );
-};
+router.get('/listarUsers', auth as RequestHandler, permissao('allow_cadastrar_vagas') as RequestHandler, listarUsers as RequestHandler<{}, {}, {}, {}>)
+router.get('/listarVagas', auth as RequestHandler, permissao('allow_cadastrar_vagas') as RequestHandler, listarVagas as RequestHandler<{}, {}, {}, IListarVagas>)
+router.get('/listarVagaCompleta', auth as RequestHandler, permissao('allow_cadastrar_vagas') as RequestHandler, listarVagaCompleta as RequestHandler<{}, {}, {}, IListarVagaCompleta>)
+router.get('/listarFiltros', auth as RequestHandler, permissao('allow_cadastrar_vagas') as RequestHandler, listarFiltros as RequestHandler<{}, {}, {}, {}>)
+
+router.post('/cadastrarVaga', auth as RequestHandler, permissao('allow_cadastrar_vagas') as RequestHandler, cadastrarVaga as RequestHandler<{}, {}, ICadastrarVaga>)
+
+router.patch('/atualizarStatusTI', auth as RequestHandler, permissao('allow_aprove_rh_ti') as RequestHandler, atualizarStatusTI as RequestHandler<{}, {}, IAtualizarStatusTI>)
+router.patch('/atualizarStatus', auth as RequestHandler, permissao('allow_visualizar_todas_vagas') as RequestHandler, atualizarStatus as RequestHandler<{}, {}, IAtualizarStatus>)
+router.patch('/atualizarVaga', auth as RequestHandler, permissao('allow_cadastrar_vagas') as RequestHandler, atualizarVaga as RequestHandler<{}, {}, IAtualizarVaga>)
+
+export default router
 ```
+as routes vao chamar 
 
-#### C) Estrutura de Rotas Melhorada
 
-```javascript
-// routes/private/index.jsx
-// WITH lazy loading
-
-import { lazy, Suspense } from 'react';
-import { Navigate } from 'react-router-dom';
-
-const Home = lazy(() => import('@/pages/private/Home'));
-const Mapa = lazy(() => import('@/pages/private/Mapa'));
-const Perfil = lazy(() => import('@/pages/private/Perfil'));
-const Feed = lazy(() => import('@/pages/private/Feed'));
-
-const Loading = () => (
-  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-    Carregando...
-  </div>
-);
-
-export const PrivateRoutes = {
-  path: '/app',
-  element: <AppLayout />,
-  children: [
-    {
-      index: true,
-      element: <Navigate to="home" replace />
-    },
-    {
-      path: 'home',
-      element: <Suspense fallback={<Loading />}><Home /></Suspense>
-    },
-    {
-      path: 'mapa',
-      element: <Suspense fallback={<Loading />}><Mapa /></Suspense>
-    },
-    {
-      path: 'feed',
-      element: <Suspense fallback={<Loading />}><Feed /></Suspense>
-    },
-    {
-      path: 'perfil/:id?',
-      element: <Suspense fallback={<Loading />}><Perfil /></Suspense>
-    }
-  ]
-};
-```
-
+export default permissao
+#
 ---
 
 ## 5. BANCO DE DADOS - ESTRUTURA RECOMENDADA
