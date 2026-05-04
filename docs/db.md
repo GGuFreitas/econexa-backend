@@ -1,7 +1,7 @@
 
 ```sql
-CREATE DATABASE IF NOT EXISTS econexa;
-USE econexa;
+  CREATE DATABASE IF NOT EXISTS econexa;
+  USE econexa;
 
 -- =========================
 -- USERS
@@ -645,6 +645,7 @@ Usada para:
 * area para voltada a estudos separada por areas de conhecimento social e ambiental, foco em entender a estrutura da sociedade
 formar pensamento critico, entendimento de politicas publicas, planejamento urbano, racismo ambiental, entender problema de privatizaçãoo
 * migrar para outro banco que nao seja local, supabase por enquanto algo do tipo
+* PostGis migrar para postgres e melhorar a arquyitetura
 ---
 
 ## 📌 RESUMO FINAL

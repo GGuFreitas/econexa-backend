@@ -102,226 +102,6 @@ econexa-backend/
 - Feed (usuário, causa)
 - Seguidores
 
-### 3.2 Tabelas do Banco
-
-```sql
--- =========================
--- USERS
--- =========================
-CREATE TABLE USERS (
-  ID INT AUTO_INCREMENT PRIMARY KEY,
-  NOME VARCHAR(120) NOT NULL,
-  EMAIL VARCHAR(180) NOT NULL UNIQUE,
-  SENHA VARCHAR(255) NOT NULL,
-  FOTO VARCHAR(500),
-  BIO TEXT,
-  TIPO ENUM('COMUM','ADMIN','MODERADOR') DEFAULT 'COMUM',
-  STATUS VARCHAR(20) DEFAULT 'ATIVO',
-  CRIADO_EM DATETIME DEFAULT CURRENT_TIMESTAMP,
-
-  CONT_POSTS INT DEFAULT 0,
-  CONT_SEGUIDORES INT DEFAULT 0,
-  CONT_SEGUINDO INT DEFAULT 0,
-  CONT_PROBLEMAS INT DEFAULT 0
-) ENGINE=InnoDB;
-
--- =========================
--- PERMISSÕES
--- =========================
-CREATE TABLE USER_PERMISSOES (
-  USER_ID INT PRIMARY KEY,
-  ALLOW_POST BOOLEAN DEFAULT TRUE,
-  ALLOW_COMENTAR BOOLEAN DEFAULT TRUE,
-  ALLOW_PROBLEMA BOOLEAN DEFAULT TRUE,
-  ALLOW_ADMIN BOOLEAN DEFAULT FALSE
-) ENGINE=InnoDB;
-
--- =========================
--- CAUSAS
--- =========================
-CREATE TABLE CAUSAS (
-  ID INT AUTO_INCREMENT PRIMARY KEY,
-  NOME VARCHAR(120) NOT NULL,
-  DESCRICAO TEXT,
-  COR VARCHAR(20),
-  ICONE VARCHAR(100),
-  TIPO VARCHAR(20) DEFAULT 'LOCAL',
-  ATIVO BOOLEAN DEFAULT TRUE
-) ENGINE=InnoDB;
-
--- =========================
--- PROBLEMAS
--- =========================
-CREATE TABLE PROBLEMAS (
-  ID INT AUTO_INCREMENT PRIMARY KEY,
-  TITULO VARCHAR(255) NOT NULL,
-  DESCRICAO TEXT NOT NULL,
-  CATEGORIA VARCHAR(50) NOT NULL,
-  ENDERECO VARCHAR(500),
-  LATITUDE DECIMAL(10,8),
-  LONGITUDE DECIMAL(11,8),
-  IMAGEM VARCHAR(500),
-  USUARIO_ID INT,
-  STATUS VARCHAR(20) DEFAULT 'pendente',
-  CRIADO_EM DATETIME DEFAULT CURRENT_TIMESTAMP,
-  
-  CONT_APOIOS INT DEFAULT 0,
-  CONT_VISUALIZACOES INT DEFAULT 0,
-  CONT_COMENTARIOS INT DEFAULT 0
-) ENGINE=InnoDB;
-
-CREATE INDEX idx_problema_local ON PROBLEMAS(LATITUDE, LONGITUDE);
-CREATE INDEX idx_problema_status ON PROBLEMAS(STATUS);
-
--- =========================
--- IMAGENS PROBLEMA
--- =========================
-CREATE TABLE PROBLEMA_IMAGENS (
-  ID INT AUTO_INCREMENT PRIMARY KEY,
-  PROBLEMA_ID INT,
-  URL VARCHAR(500) NOT NULL,
-  ORDEM INT DEFAULT 0,
-  TIPO VARCHAR(20) DEFAULT 'IMAGEM',
-  CRIADO_EM DATETIME DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
-
--- =========================
--- APOIOS (Curtidas Problema)
--- =========================
-CREATE TABLE APOIADORES (
-  ID INT AUTO_INCREMENT PRIMARY KEY,
-  PROBLEMA_ID INT,
-  USER_ID INT,
-  CRIADO_EM DATETIME DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE KEY uk_apoio (PROBLEMA_ID, USER_ID)
-) ENGINE=InnoDB;
-
--- =========================
--- POSTS
--- =========================
-CREATE TABLE POSTS (
-  ID INT AUTO_INCREMENT PRIMARY KEY,
-  TITULO VARCHAR(255),
-  CONTEUDO TEXT NOT NULL,
-  USUARIO_ID INT,
-  TIPO VARCHAR(20) DEFAULT 'POST',
-  CAUSA_ID INT,
-  STATUS VARCHAR(20) DEFAULT 'PUBLICADO',
-  CRIADO_EM DATETIME DEFAULT CURRENT_TIMESTAMP,
-  
-  CONT_CURTIDAS INT DEFAULT 0,
-  CONT_COMENTARIOS INT DEFAULT 0,
-  CONT_COMPARTILHAMENTOS INT DEFAULT 0
-) ENGINE=InnoDB;
-
--- =========================
--- IMAGENS POST
--- =========================
-CREATE TABLE POST_IMAGENS (
-  ID INT AUTO_INCREMENT PRIMARY KEY,
-  POST_ID INT,
-  URL VARCHAR(500) NOT NULL,
-  ORDEM INT DEFAULT 0,
-  CRIADO_EM DATETIME DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
-
--- =========================
--- CURTIDAS POST
--- =========================
-CREATE TABLE POST_CURTIDAS (
-  ID INT AUTO_INCREMENT PRIMARY KEY,
-  POST_ID INT,
-  USER_ID INT,
-  CRIADO_EM DATETIME DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE KEY uk_post_like (POST_ID, USER_ID)
-) ENGINE=InnoDB;
-
--- =========================
--- SALVOS
--- =========================
-CREATE TABLE POST_SALVOS (
-  ID INT AUTO_INCREMENT PRIMARY KEY,
-  POST_ID INT,
-  USER_ID INT,
-  CRIADO_EM DATETIME DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE KEY uk_post_salvo (POST_ID, USER_ID)
-) ENGINE=InnoDB;
-
--- =========================
--- COMENTARIOS
--- =========================
-CREATE TABLE COMENTARIOS (
-  ID INT AUTO_INCREMENT PRIMARY KEY,
-  USER_ID INT,
-  REFERENCIA_TIPO VARCHAR(20),
-  REFERENCIA_ID INT,
-  CONTEUDO TEXT NOT NULL,
-  CRIADO_EM DATETIME DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
-
-CREATE INDEX idx_comentario_ref ON COMENTARIOS(REFERENCIA_TIPO, REFERENCIA_ID);
-
--- =========================
--- IMAGENS COMENTARIO
--- =========================
-CREATE TABLE COMENTARIO_IMAGENS (
-  ID INT AUTO_INCREMENT PRIMARY KEY,
-  COMENTARIO_ID INT,
-  URL VARCHAR(500) NOT NULL,
-  TIPO VARCHAR(20) DEFAULT 'IMAGEM',
-  CRIADO_EM DATETIME DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
-
--- =========================
--- SEGUIDORES
--- =========================
-CREATE TABLE SEGUIDORES (
-  ID INT AUTO_INCREMENT PRIMARY KEY,
-  USER_ID INT,
-  SEGUIDO_ID INT,
-  CRIADO_EM DATETIME DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE KEY uk_follow (USER_ID, SEGUIDO_ID)
-) ENGINE=InnoDB;
-
--- =========================
--- NOTIFICACOES
--- =========================
-CREATE TABLE NOTIFICACOES (
-  ID INT AUTO_INCREMENT PRIMARY KEY,
-  USER_ID INT,
-  TIPO VARCHAR(50),
-  REFERENCIA_ID INT,
-  MENSAGEM TEXT,
-  LIDO BOOLEAN DEFAULT FALSE,
-  CRIADO_EM DATETIME DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
-
-CREATE INDEX idx_not_user ON NOTIFICACOES(USER_ID);
-
--- =========================
--- INTERACOES (Analytics)
--- =========================
-CREATE TABLE INTERACOES (
-  ID INT AUTO_INCREMENT PRIMARY KEY,
-  USER_ID INT,
-  TIPO VARCHAR(50),
-  REFERENCIA_TIPO VARCHAR(20),
-  REFERENCIA_ID INT,
-  CRIADO_EM DATETIME DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
-
--- =========================
--- REFRESH TOKENS
--- =========================
-CREATE TABLE REFRESH_TOKENS (
-  ID INT AUTO_INCREMENT PRIMARY KEY,
-  USER_ID INT,
-  TOKEN VARCHAR(500) NOT NULL,
-  EXPIRA_EM DATETIME NOT NULL,
-  CRIADO_EM DATETIME DEFAULT CURRENT_TIMESTAMP
-) ENGINE=InnoDB;
-```
-
 ---
 
 ## 4. SISTEMA DE AUTENTICAÇÃO E PERMISSÕES
@@ -544,7 +324,7 @@ export const listarNotificacoes = async (req: Request, res: Response): Promise<R
     const { lido } = req.query
 
     let query = `-- sql
-      SELECT * FROM NOTIFICACOES 
+      SELECT * FROM NOTIFICACOES
       WHERE USER_ID = ?
     `
     const valores: any[] = [usuarioId]
@@ -615,12 +395,12 @@ if (isEmpty(req.params, ['id'])) {
 ### 7.2 Respostas Padronizadas
 
 ```typescript
-import { 
-  responseSuccess, 
-  responseBadRequest, 
-  responseError, 
+import {
+  responseSuccess,
+  responseBadRequest,
+  responseError,
   responseUnauthorized,
-  responseNotFound 
+  responseNotFound
 } from '@utils/response'
 
 // Sucesso
@@ -644,7 +424,7 @@ return responseError({ response: res, error: err })
 **Use:**
 ```typescript
 const [result] = await mySqlConn.query<RowDataPacket[]>(`-- sql
-  SELECT 
+  SELECT
     p.*,
     u.NOME as USUARIO_NOME,
     GROUP_CONCAT(pi.URL) as IMAGENS
@@ -761,7 +541,7 @@ Se optar por migrar para PostgreSQL/Supabase:
    import mysql from 'mysql2/promise' // manter mysql2
    // ou migrar para postgres:
    import { Pool } from 'pg'
-   
+
    const pool = new Pool({
      connectionString: process.env.DATABASE_URL
    })

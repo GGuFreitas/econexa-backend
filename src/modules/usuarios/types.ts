@@ -10,6 +10,11 @@ export interface IAtualizarUsuario {
   BIO?: string
 }
 
+export interface IAlterarSenha {
+  SENHA_ATUAL: string
+  NOVA_SENHA: string
+}
+
 export interface IUsuario {
   ID: number
   NOME: string
