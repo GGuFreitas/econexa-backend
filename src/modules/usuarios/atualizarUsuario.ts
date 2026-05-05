@@ -78,3 +78,25 @@ export const buscarUsuario = async (req: Request<{ id: string }>, res: Response)
     return responseError({ response: res, error: err })
   }
 }
+
+export const buscarMeuUsuario = async (req: Request, res: Response): Promise<Response> => {
+  try {
+    const usuarioId = req.conta.usuario.ID
+
+    const [usuarios] = await mySqlConn.query<RowDataPacket[]>(`-- sql
+      SELECT 
+        ID, NOME, EMAIL, FOTO, BIO, TIPO, STATUS, CRIADO_EM,
+        CONT_POSTS, CONT_SEGUIDORES, CONT_SEGUINDO, CONT_PROBLEMAS
+      FROM USERS 
+      WHERE ID = ? AND STATUS = 'ATIVO'
+    `, [usuarioId])
+
+    if (!usuarios.length) {
+      return responseBadRequest({ response: res, message: 'Usuário não encontrado' })
+    }
+
+    return responseSuccess({ response: res, payload: { usuario: usuarios[0], permissoes: req.conta.permissoes || {} } })
+  } catch (err) {
+    return responseError({ response: res, error: err })
+  }
+}
